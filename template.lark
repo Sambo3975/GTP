@@ -1,0 +1,37 @@
+start: header body
+
+header: "<template \"" path "\">" NEWLINE
+
+path: /[ \.a-zA-Z0-9_\/]+/
+
+body: (block | raw_text)*
+
+block: "<?" expression* "?>"
+
+expression: for_loop
+          | echo
+
+for_loop: "for" variable "=" value "," value "{" expression* "}"
+
+echo: "echo" value ";"
+
+value: INT
+    | string
+
+string: "'" (string_inner1 | variable)* "'"
+      | "\"" (string_inner2 | variable)* "\""
+
+string_inner1: /([^'$\\]|\\.)+/
+string_inner2: /([^"$\\]|\\.)+/
+
+variable: "$" CNAME
+
+raw_text: /.+/ NEWLINE
+
+%import common.NEWLINE
+%import common.WS
+%import common.INT
+%import common.CNAME
+%import common.ESCAPED_STRING
+
+%ignore WS

@@ -1,0 +1,6 @@
+<template "test.txt">
+Diabeetus
+<? for $i = 0,12 {
+echo '_PaletteTex$i ("Palette $i", 2D) = "white" {}';
+echo '_PaletteRow$i ("Palette $i Row", Integer) = 0';
+} ?>
