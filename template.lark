@@ -2,36 +2,58 @@ start: header body
 
 header: "<template \"" path "\">" NEWLINE
 
+// Path of the file to generate
 path: /[ \.a-zA-Z0-9_\/]+/
 
 body: (block | raw_text)*
 
-block: "<?" expression* "?>"
+block: "<?" statement* "?>"
 
-expression: for_loop
-          | echo
+statement: command
+      | enclosure
+      | for_loop
 
-for_loop: "for" variable "=" value "," value "{" expression* "}"
+command: (assignment
+      | echo) ";"
 
-echo: "echo" value ";"
+assignment: variable "=" value
 
-value: INT
-    | string
+echo: "echo" value
 
-string: "'" (string_inner1 | variable)* "'"
-      | "\"" (string_inner2 | variable)* "\""
+enclosure: "{" statement* "}"
 
-string_inner1: /([^'$\\]|\\.)+/
-string_inner2: /([^"$\\]|\\.)+/
+for_loop: "for" variable "=" value "," value enclosure
 
-variable: "$" CNAME
+variable: CNAME
 
-raw_text: /.+/ NEWLINE
+value: variable
+      | literal
+      | f_string
+      | array
+      | indexer
 
-%import common.NEWLINE
-%import common.WS
-%import common.INT
-%import common.CNAME
-%import common.ESCAPED_STRING
+literal: STRING
+      | INT
+
+STRING: /'([^'\\]|\\.)*'/
+      | /"([^"\\]|\\.)*"/
+
+INT: /-?\d+/
+
+f_string: "f'" (F_STRING_INNER | "{" value "}")* "'"
+      | "f\"" (F_STRING_INNER_2 | "{" value "}")* "\""
+
+F_STRING_INNER: /([^'\{\\]|\\.)+/
+F_STRING_INNER_2: /([^"\{\\]|\\.)+/
+
+array: "{" ((value ",")* value ","?)? "}"
+
+indexer: variable "[" value "]"
+
+// Text to be copied into generated file as-is
+// This can't be a terminal because it won't be visited if it is
+raw_text: /.+/ 
+
+%import common (NEWLINE, CNAME, WS)
 
 %ignore WS
