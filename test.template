@@ -1,7 +1,0 @@
-<template "test.txt">
-<?
-arr = {'Doug', 'Larry', 'Bob'};
-for i = 0,2 {
-    echo f'Hello, {arr[i]}!';
-}
-?>

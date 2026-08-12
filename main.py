@@ -1,3 +1,4 @@
+from pathlib import Path
 import sys
 
 from lark import Lark
@@ -5,7 +6,8 @@ from lark.visitors import Interpreter
 from lark.lexer import Token
 import re
 
-parser = Lark(open('template.lark').read())
+script_path = str(Path(__file__).resolve().parent)
+parser = Lark(open(script_path + '/gtp.lark').read())
 
 
 class GenerateCode(Interpreter):
