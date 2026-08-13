@@ -312,7 +312,6 @@ if __name__ == '__main__':
                         else:
                             add_partial_line(inputs, line[0:block_start_column])
                             block_start_line = line_number
-                            print(f'Found block at L{block_start_line} C{block_start_column}')
 
                     else:
 
