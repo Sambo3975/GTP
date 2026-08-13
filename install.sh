@@ -1,5 +1,6 @@
 mkdir -p /usr/bin/gtp-lib/
 cp -r .venv /usr/bin/gtp-lib/
+cp gtp-header.lark /usr/bin/gtp-lib/gtp-header.lark
 cp gtp.lark /usr/bin/gtp-lib/gtp.lark
 cp main.py /usr/bin/gtp-lib/main.py
 chmod +x /usr/bin/gtp-lib/main.py

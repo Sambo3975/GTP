@@ -1,0 +1,7 @@
+start: "[additional-files" ("\"" FILENAME "\"")+ "]"
+
+FILENAME: /[^<>:"\/\\|?*]*[^<>:"\/\\|?*\. ]/
+
+%import common.WS
+
+%ignore WS

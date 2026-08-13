@@ -86,6 +86,18 @@ The `else` clause is , of course, optional, and there may be any number of `elif
 
 Every variable declared between `{` and `}` is in its own local scope and cannot be accessed from a larger scope. `{` and `}` can be used without a loop to create a local scope, if desired.
 
+### Generating Multiple Files from One GTP File
+
+Optionally, you can put a line with the following formatting at the top of a GTP file: `[additional-files "FILE1" "FILE2" "FILE3" ...]` where `FILE#` is the name of an additional file. There may be any number of files in this list.
+
+This is pretty useless on its own, as it will just generate multiple copies of the same file with different names. To make it useful, you can add conditionals to your GTP file based on the `OUTPUT_FILE` constant (see the next section).
+
+### Constants
+
+These are readonly values that are automatically set by GTP. They can be accessed in the same way as variables. They are referred to as constants because they cannot change while a file is being generated.
+
+`OUTPUT_FILE`: Name of the file that is currently being generated. This can be used with an `additional-files` block to make multiple variants of one output file (see the previous section).
+
 ## Example
 
 Consider the following GTP script (stored in a file named `hello.py.gtp`):
@@ -94,7 +106,7 @@ Consider the following GTP script (stored in a file named `hello.py.gtp`):
 if __name__ == '__main__':
     <? names = { 'Billy', 'Bob', 'Joe', 'Wendy', 'Laura' };
     for i = 1, 3 {
-        echo f'    print("Hello, {names[i]}!")';
+        echo f'print("Hello, {names[i]}!")';
     } ?>
 ```
 
