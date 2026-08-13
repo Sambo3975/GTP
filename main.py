@@ -275,8 +275,14 @@ if __name__ == '__main__':
         if type(inputs[i]) == str:
             outputs += inputs[i]
         elif isinstance(inputs[i], GTPBlock):
+            output_first = False
+            prefix = inputs[i].start_col * ' '
             for output in inputs[i].run():
-                outputs += output
+                if output_first:
+                    outputs += prefix + output
+                else:
+                    outputs += output
+                    output_first = True
 
     with open(file_name.removesuffix('.gtp'), 'w') as output_file:
 
