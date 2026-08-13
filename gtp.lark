@@ -3,6 +3,7 @@ start: statement*
 statement: command
       | enclosure
       | for_loop
+      | conditional
 
 command: (assignment
       | echo) ";"
@@ -15,7 +16,7 @@ enclosure: "{" statement* "}"
 
 for_loop: "for" variable "=" value "," value enclosure
 
-variable: CNAME
+conditional: "if" value enclosure ("elif" value enclosure)* ("else" enclosure)?
 
 value: variable
       | literal
@@ -23,13 +24,18 @@ value: variable
       | array
       | indexer
 
-literal: STRING
+literal.2: STRING
       | INT
+      | BOOL
 
 STRING: /'([^'\\]|\\.)*'/
       | /"([^"\\]|\\.)*"/
 
 INT: /-?\d+/
+
+BOOL: "true" | "false"
+
+variable: CNAME
 
 f_string: "f'" (F_STRING_INNER | "{" value "}")* "'"
       | "f\"" (F_STRING_INNER_2 | "{" value "}")* "\""

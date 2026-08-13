@@ -18,7 +18,7 @@ class GenerateCode(Interpreter):
 
         self.outputs = []
 
-    def expression(self, tree):
+    def statement(self, tree):
         self.visit(tree.children[0])
 
     def command(self, tree):
@@ -73,6 +73,23 @@ class GenerateCode(Interpreter):
             self.visit(tree.children[3])
         scopes.pop()
 
+    def conditional(self, tree):
+        """Evaluate a conditional branch with optional 'elif' and 'else' clauses.
+
+        Args:
+            tree (ParseTree): Conditional node
+        """
+        child_index = 0
+        took_branch = False
+        while child_index < len(tree.children) - 1:
+            condition = self._get_value(tree.children[child_index])
+            if condition:
+                self.visit(tree.children[child_index + 1])
+                took_branch = True
+            child_index += 2
+        if not took_branch and child_index < len(tree.children):
+            self.visit(tree.children[child_index])
+
     def raw_text(self, tree):
         """Pass raw text to the output file as-is.
 
@@ -120,7 +137,7 @@ class GenerateCode(Interpreter):
         for i in range(len(scopes) - 1, -1, -1):
             if name in scopes[i]:
                 return scopes[i][name]
-        raise NameError(f"name '{tree.children[0]}' is not defined")
+        return None
 
     def _get_literal(self, tree):
         """Get the value of a literal
@@ -136,6 +153,8 @@ class GenerateCode(Interpreter):
             return tree.children[0][1:-1]
         elif literal.type == "INT":
             return int(tree.children[0])
+        elif literal.type == "BOOL":
+            return True if tree.children[0] == 'true' else False
 
     def _get_fstring(self, tree):
         """Get the result of building an f-string.
@@ -222,7 +241,7 @@ class GTPBlock:
 
 
 if __name__ == '__main__':
-    file_name = sys.argv[1]
+    file_name = sys.argv[1] if len(sys.argv) >= 2 else 'test.txt.gtp'
 
     # This is necessary to prevent overwriting the input file if the .gtp extension is missing.
     if not file_name.endswith('.gtp'):

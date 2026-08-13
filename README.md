@@ -28,11 +28,17 @@ GTP code blocks are delimited with `<?gtp` and `?>` markers. Any text outside th
 
 ### Types
 
-GTP is a loosely-typed language 3 variable types: `string`, `int`, and `array`. 
+GTP is a loosely-typed language with 5 data types: `string`, `int`, `bool`, `array`, and `null`. 
 
-Strings are delimited using either single quotes `''` or double quotes. `""`. Escaped characters (such as `\"`) are supported.
+Bools use the literal values `true` and `false`.
+
+Strings are delimited using either single quotes `''` or double quotes. `""`. Escaped characters (such as `\"`) are supported. All strings evaluate to `true` when used as a bool.
+
+All ints except for 0 evaluate to `true` when used as a bool.
 
 Arrays are delimited with `{` and `}`, with values separated by commas `,`.
+
+Variables that have not been declared have a value of `null`. `null` always evaluates to false when used as a bool.
 
 ### Variables
 
@@ -57,6 +63,24 @@ Use an `echo <value>;` statement to generate code in the output file. The genera
 For-loops are declared as `for <variable> = <start>, <end> { <body> }`, with start and end being `int` values. `start` and `end` may be literals or variables. However, variables are only evaluated once at the start of the loop. The body of the loop is then run `end - start` times, once for each value between `start` and `end`, inclusive.
 
 The iterator `variable` is created in its own scope, and can only be accessed from within the loop.
+
+### Conditionals
+
+Conditionals are declared with the following syntax:
+
+```
+if <value> {
+    <statement(s)>
+}
+elif <value> {
+    <statement(s)>
+}
+else {
+    <statement(s)>
+}
+```
+
+The `else` clause is , of course, optional, and there may be any number of `elif` clauses (including zero). All types can be used for values.
 
 ### Scope
 
