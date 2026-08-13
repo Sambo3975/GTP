@@ -23,6 +23,7 @@ value: variable
       | f_string
       | array
       | indexer
+      | binary_operation
 
 literal.2: STRING
       | INT
@@ -46,6 +47,10 @@ F_STRING_INNER_2: /([^"\{\\]|\\.)+/
 array: "{" ((value ",")* value ","?)? "}"
 
 indexer: variable "[" value "]"
+
+binary_operation: value BINARY_OP value
+
+BINARY_OP: "=="
 
 %import common (NEWLINE, CNAME, WS)
 

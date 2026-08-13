@@ -120,6 +120,8 @@ class GenerateCode(Interpreter):
             return self._get_array(value)
         elif value.data == "indexer":
             return self._get_indexer(value)
+        elif value.data == "binary_operation":
+            return self._get_binary_operation(value)
 
     def _get_variable(self, tree):
         """Get the value of a variable.
@@ -204,6 +206,22 @@ class GenerateCode(Interpreter):
         if type(index) != int:
             raise TypeError(f"array index must be int, not {type(index)}")
         return target[index]
+
+    def _get_binary_operation(self, tree):
+        """Evaluate a binary operation.
+
+        Args:
+            tree (ParseTree): Binary operation node
+
+        Returns:
+            Any: Result of the operation
+        """
+        lhs = self._get_value(tree.children[0])
+        op = tree.children[1]
+        rhs = self._get_value(tree.children[2])
+
+        if op == '==':
+            return lhs == rhs
 
     def _set_variable(self, name, value):
         """Set the value of a variable. If it defined in an enclosing scope, set it in that scope. Otherwise, define it 
