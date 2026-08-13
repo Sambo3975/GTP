@@ -8,6 +8,7 @@ import re
 
 script_path = str(Path(__file__).resolve().parent)
 parser = Lark(open(script_path + '/gtp.lark').read())
+scopes = [dict()]
 
 
 class GenerateCode(Interpreter):
@@ -15,25 +16,7 @@ class GenerateCode(Interpreter):
     def __init__(self):
         super().__init__()
 
-        self.output_file = None
-        self.scopes = [dict()]
-
-    def header(self, tree):
-        self.visit(tree.children[0])
-
-    def path(self, tree):
-        """Open the output file for reading.
-
-        Args:
-            tree (ParseTree): Path node
-        """
-        self.output_file = open(tree.children[0], 'w')
-
-    def body(self, tree):
-        self.visit_children(tree)
-
-    def block(self, tree):
-        self.visit_children(tree)
+        self.outputs = []
 
     def expression(self, tree):
         self.visit(tree.children[0])
@@ -58,7 +41,7 @@ class GenerateCode(Interpreter):
         Args:
             tree (ParseTree): Echo node
         """
-        self.output_file.write(str(self._get_value(tree.children[0])) + '\n')
+        self.outputs.append(str(self._get_value(tree.children[0])) + '\n')
 
     def enclosure(self, tree):
         """Run code in a new local scope.
@@ -66,9 +49,9 @@ class GenerateCode(Interpreter):
         Args:
             tree (ParseTree): Enclosure node
         """
-        self.scopes.append(dict())
+        scopes.append(dict())
         self.visit_children(tree)
-        self.scopes.pop()
+        scopes.pop()
 
     def for_loop(self, tree):
         """Run a for loop. This creates a new inner scope for the iterator variable, then runs the enclosed expressions
@@ -77,7 +60,7 @@ class GenerateCode(Interpreter):
         Args:
             tree (ParseTree): For loop node
         """
-        self.scopes.append(dict())
+        scopes.append(dict())
         name = str(tree.children[0].children[0])
         start = self._get_value(tree.children[1])
         if type(start) != int:
@@ -88,7 +71,7 @@ class GenerateCode(Interpreter):
         for i in range(start, end + 1):
             self._set_variable(name, i)
             self.visit(tree.children[3])
-        self.scopes.pop()
+        scopes.pop()
 
     def raw_text(self, tree):
         """Pass raw text to the output file as-is.
@@ -134,9 +117,9 @@ class GenerateCode(Interpreter):
             Any: Value of the node
         """
         name = str(tree.children[0])
-        for i in range(len(self.scopes) - 1, -1, -1):
-            if name in self.scopes[i]:
-                return self.scopes[i][name]
+        for i in range(len(scopes) - 1, -1, -1):
+            if name in scopes[i]:
+                return scopes[i][name]
         raise NameError(f"name '{tree.children[0]}' is not defined")
 
     def _get_literal(self, tree):
@@ -211,15 +194,91 @@ class GenerateCode(Interpreter):
             name (_type_): _description_
             value (_type_): _description_
         """
-        for i in range(len(self.scopes) - 1, -2, -1):
-            if i == -1 or name in self.scopes[i]:
-                self.scopes[i][name] = value
+        for i in range(len(scopes) - 1, -2, -1):
+            if i == -1 or name in scopes[i]:
+                scopes[i][name] = value
+
+
+def add_partial_line(output_lines : list[str], text : str):
+    if (len(output_lines) > 0):
+        output_lines[-1] += text
+    else:
+        output_lines.append(text)
+
+
+class GTPBlock:
+
+    def __init__(self, start_line : int, start_col : int, end_line : int, end_col : int, contents : str):
+        self.start_line = start_line
+        self.start_col = start_col
+        self.end_line = end_line
+        self.end_col = end_col
+        self.parse_tree = parser.parse(contents)
+
+    def run(self) -> list[str]:
+        interpreter = GenerateCode()
+        interpreter.visit(self.parse_tree)
+        return interpreter.outputs
 
 
 if __name__ == '__main__':
-    file_name = sys.argv[1] if len(sys.argv) == 2 else 'fastPaletteSwapUber.shadertemplate'
-    with open(file_name, 'r') as template:
-        tree = parser.parse(template.read())
+    file_name = sys.argv[1]
 
-    generator = GenerateCode()
-    generator.visit(tree)
+    # This is necessary to prevent overwriting the input file if the .gtp extension is missing.
+    if not file_name.endswith('.gtp'):
+        raise ValueError(f"Cannot generate code from file '{file_name}': it lacks the .gtp exension.")
+
+    line_number = 0
+    block_start_line = -1
+    block_start_column = -1
+    inputs = []
+
+    # Instead of parsing the entire file with the GTP grammar, we separate it into raw text and individual code blocks.
+    # Those code blocks are then parsed individually. This is so syntax errors in a code block are recognized as such 
+    # instead of being interpreted as raw text and copied to the output file.
+
+    with open(file_name, 'r') as template:
+
+        for line in (lines := template.readlines()):
+
+            if block_start_line == -1:
+
+                if (block_start_column := line.find('<?gtp')) == -1:
+                    inputs.append(line)
+                else:
+                    add_partial_line(inputs, line[0:block_start_column])
+                    block_start_line = line_number
+
+            else:
+
+                # GTP blocks may not be nested, so finding another opening tag while inside one means the user failed to
+                # close a block.
+                if line.find('<?gtp') != -1:
+                    break
+
+                if (block_end_column := line.find('?>')) != -1:
+                    block = lines[block_start_line][block_start_column + 5:]
+                    for i in range(block_start_line + 1, line_number):
+                        block += lines[i]
+                    block += lines[line_number][:block_end_column]
+                    inputs.append(GTPBlock(block_start_line, block_start_column, line_number, block_end_column, block))
+                    block_start_line = -1
+
+            line_number += 1
+
+    # Opened a new GTP block before closing the previous one, or reached EOF without closing the block
+    if block_start_line != -1:
+        raise SyntaxError(f"{file_name}:{line_number + 1}: Expected '?>' to close '<?gtp' on line {block_start_line + 1}.")
+
+    outputs = []
+    for i in range(len(inputs)):
+        if type(inputs[i]) == str:
+            outputs += inputs[i]
+        elif isinstance(inputs[i], GTPBlock):
+            for output in inputs[i].run():
+                outputs += output
+
+    with open(file_name.removesuffix('.gtp'), 'w') as output_file:
+
+        for line in outputs:
+            output_file.write(line)

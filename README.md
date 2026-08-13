@@ -20,13 +20,9 @@ If you get it to work on one of these systems, consider opening a PR that adds i
 
 ## Usage
 
-By convention, GTP runs on files with the `.gtp` extension.
+GTP runs on files with the `NAME.EXT.gtp` naming convention, where `NAME` is the name of the file to be generated and `EXT` is the file extension of that file. For example, a GTP file named `hello.py.gtp` would generate a file named `hello.py`.
 
-Create a `.gtp` file named after the file to be generated. For example, you would generate a script called `hello.py` with a file called `hello.py.gtp`.
-
-At the top of the file is a header formatted as `<template "hello.py">`. This tells GTP the name of the file to generate. (This will probably be removed in the future because it is redundant.)
-
-Code blocks are placed inside blocks delimited with `<?` and `?>` markers. Any text outside these markers will be left as-is when the output file is generated. Any number of statements may be included inside these markers. The end of each statement is marked with a semicolon `;`.
+GTP code blocks are delimited with `<?gtp` and `?>` markers. Any text outside these markers will be left as-is when the output file is generated. Any number of statements may be included inside these markers. The end of each statement is marked with a semicolon `;`.
 
 ## Language Features
 
@@ -52,7 +48,7 @@ GTP also has formatted strings, marked either with `f''` or `f""`. Values inside
 
 ### Echo
 
-Use an `echo <value>;` statement to generate code in the output file. The generated code is placed at the position of the `<? ?>` block that generated it.
+Use an `echo <value>;` statement to generate code in the output file. The generated code is placed at the position of the GTP block that generated it.
 
 `value` may be an f-string, or it may be a literal or variable of any type.
 
@@ -71,11 +67,10 @@ Every variable declared between `{` and `}` is in its own local scope and cannot
 Consider the following GTP script (stored in a file named `hello.py.gtp`):
 
 ```
-<template "hello.py">
 if __name__ == '__main__':
     <? names = { 'Billy', 'Bob', 'Joe', 'Wendy', 'Laura' };
     for i = 1, 3 {
-        echo f'print("    Hello, {names[i]}!")';
+        echo f'    print("Hello, {names[i]}!")';
     } ?>
 ```
 

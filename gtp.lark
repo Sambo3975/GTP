@@ -1,13 +1,4 @@
-start: header body
-
-header: "<template \"" path "\">" NEWLINE
-
-// Path of the file to generate
-path: /[ \.a-zA-Z0-9_\/]+/
-
-body: (block | raw_text)*
-
-block: "<?" statement* "?>"
+start: statement*
 
 statement: command
       | enclosure
@@ -49,10 +40,6 @@ F_STRING_INNER_2: /([^"\{\\]|\\.)+/
 array: "{" ((value ",")* value ","?)? "}"
 
 indexer: variable "[" value "]"
-
-// Text to be copied into generated file as-is
-// This can't be a terminal because it won't be visited if it is
-raw_text: /.+/ 
 
 %import common (NEWLINE, CNAME, WS)
 
