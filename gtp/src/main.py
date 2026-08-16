@@ -6,9 +6,11 @@ from lark.visitors import Interpreter
 from lark.lexer import Token
 import re
 
+from gtp.src.parsers import GTPVisitor
+
 script_path = str(Path(__file__).resolve().parent)
 header_parser = Lark(open(script_path + '/gtp-header.lark').read())
-parser = Lark(open(script_path + '/gtp.lark').read())
+parser = Lark(open(script_path + '/gtp2.lark').read())
 scopes = [dict()]
 readonly_names = set()
 
@@ -243,15 +245,17 @@ class GenerateCode(Interpreter):
 
 class GTPBlock:
 
-    def __init__(self, start_line : int, start_col : int, end_line : int, end_col : int, contents : str):
+    def __init__(self, scopes: list[dict], readonlies: set, outputs: list[str], start_line : int, start_col : int, 
+                 contents : str):
+        self.scopes = scopes
+        self.readonlies = readonlies
+        self.outputs = outputs
         self.start_line = start_line
         self.start_col = start_col
-        self.end_line = end_line
-        self.end_col = end_col
         self.parse_tree = parser.parse(contents)
 
     def run(self) -> list[str]:
-        interpreter = GenerateCode()
+        interpreter = GTPVisitor(self.scopes, self.readonlies, self.outputs)
         interpreter.visit(self.parse_tree)
         return interpreter.outputs
 
@@ -325,7 +329,8 @@ if __name__ == '__main__':
                             for i in range(block_start_line + 1, line_number):
                                 block += lines[i]
                             block += lines[line_number][:block_end_column]
-                            inputs.append(GTPBlock(block_start_line, block_start_column, line_number, block_end_column, block))
+                            inputs.append(GTPBlock(scopes, readonly_names, outputs, block_start_line, block_start_column, 
+                                                   block))
                             block_start_line = -1
 
                 line_number += 1

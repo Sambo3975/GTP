@@ -1,0 +1,72 @@
+?start: statement*
+
+?statement: enclosure
+    | (operation ";")
+
+?enclosure: conditional
+    | iterator_loop
+    | scope
+
+conditional: "if" value scope ("elif" value scope)* ("else" scope)?
+
+// Iterate over range or array; error for any other type
+iterator_loop: "for" variable "in" value scope
+
+scope: "{" statement* "}"
+
+operation: unary_operation
+    | binary_operation
+
+unary_operation: PREFIX_OPERATOR value
+
+PREFIX_OPERATOR: "echo"
+
+binary_operation: atom INFIX_OPERATOR value
+
+INFIX_OPERATOR: "=" 
+    | "=="
+
+?value: operation
+    | atom
+
+?atom: literal
+    | variable
+    | f_string
+    | array
+    | indexer
+    | value_range
+
+variable: CNAME
+
+?literal: integer
+    | string
+    | boolean
+    | null
+
+integer: SIGNED_INT
+
+string: /'([^'\\]|\\.)*'/
+    | /"([^"\\]|\\.)*"/
+
+boolean: TRUE | FALSE
+
+TRUE: "true"
+FALSE: "false"
+
+null: "null"
+
+f_string: "f'" (F_STRING_INNER | "{" value "}")* "'"
+      | "f\"" (F_STRING_INNER_2 | "{" value "}")* "\""
+
+array: "{" value? ("," value)* "}"
+
+indexer: variable "[" value "]"
+
+value_range: "range(" value ~ 1..3 ")"
+
+F_STRING_INNER: /([^'\{\\]|\\.)+/ | WS
+F_STRING_INNER_2: /([^"\{\\]|\\.)+/ | WS
+
+%import common (SIGNED_INT, CNAME, WS)
+
+%ignore WS

@@ -1,0 +1,12 @@
+[build-system]
+requires = ["hatchling", "lark"]
+build-backend = "hatchling.build"
+
+[project]
+name = "GTP"
+version = "0.0.0a0"
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "src"
+]
