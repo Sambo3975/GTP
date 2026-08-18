@@ -31,6 +31,7 @@ operation: echo
     | assignable "-=" assignment -> isub
     | assignable "*=" assignment -> imul
     | assignable "/=" assignment -> idiv
+    | assignable "%=" assignment -> imod
     | assignable "^=" assignment -> ipow
 
 ?assignable: variable
@@ -55,6 +56,7 @@ operation: echo
 ?product: power
     | product "*" power -> mul
     | product "/" power -> div
+    | product "%" power -> mod
     
 ?power: unary
     | power "^" unary -> pow
