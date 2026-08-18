@@ -96,6 +96,11 @@ class GTPTransformer(Transformer):
     def mul(self, lhs: Any, rhs: Any):
         return self._eval(lhs) * self._eval(rhs)
 
+    def div(self, lhs: Any, rhs: Any):
+        if type(lhs) is str and type(rhs) is str:
+            return lhs.split(rhs)
+        return self._eval(lhs) // self._eval(rhs)
+
     @v_args(inline=True)
     def prefix_operation(self, op: Token, var: Variable) -> int:
         value = var.get()

@@ -293,3 +293,20 @@ class TestMul(GTPTester):
     def test_str_int(self):
         self.run_gtp_block('x = "sp" * 5;')
         assert self.scopes[0]['x'] == 'spspspspsp'
+
+
+@pytest.mark.dependency(depends=['TestSet'])
+class TestDiv(GTPTester):
+
+    def test_ints_1(self):
+        self.run_gtp_block('x = 25 / 5;')
+        assert self.scopes[0]['x'] == 5
+
+    def test_ints_2(self):
+        self.run_gtp_block('x = 24 / 5;')
+        assert self.scopes[0]['x'] == 4
+
+    def test_strs(self):
+        self.run_gtp_block('x = "a,b,c,d,e" / ",";')
+        for a, b in zip(self.scopes[0]['x'], ['a', 'b', 'c', 'd', 'e']):
+            assert a == b
