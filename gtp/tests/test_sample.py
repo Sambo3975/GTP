@@ -310,3 +310,15 @@ class TestDiv(GTPTester):
         self.run_gtp_block('x = "a,b,c,d,e" / ",";')
         for a, b in zip(self.scopes[0]['x'], ['a', 'b', 'c', 'd', 'e']):
             assert a == b
+
+
+@pytest.mark.dependency(depends=['TestSet'])
+class TestMod(GTPTester):
+
+    def test_ints_1(self):
+        self.run_gtp_block('x = 25 % 5;')
+        assert self.scopes[0]['x'] == 0
+
+    def test_ints_2(self):
+        self.run_gtp_block('x = 28 % 5;')
+        assert self.scopes[0]['x'] == 3
