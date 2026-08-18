@@ -269,3 +269,11 @@ class TestAdd(GTPTester):
     def test_strs(self):
         self.run_gtp_block('x = "foo" + "bar";')
         assert self.scopes[0]['x'] == 'foobar'
+
+
+@pytest.mark.dependency(depends=['TestSet'])
+class TestSub(GTPTester):
+
+    def test_ints(self):
+        self.run_gtp_block('x = 5 - 7;')
+        assert self.scopes[0]['x'] == -2

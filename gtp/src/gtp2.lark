@@ -61,6 +61,7 @@ operation: echo
 
 ?unary: "not" atom -> neg
     | atom
+    | "-" atom -> inverse
     | "++" atom -> pre_incr
     | "--" atom -> pre_decr
     | atom "++" -> post_incr
