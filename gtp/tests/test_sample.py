@@ -15,6 +15,7 @@ class GTPTester:
         return GTPBlock(self.scopes, self.readonlies, self.outputs, 0, 0, contents).run()
 
 
+@pytest.mark.dependency(name='TestSet')
 class TestSet(GTPTester):
 
     @pytest.mark.dependency(name='set_int_pos')
@@ -34,10 +35,12 @@ class TestSet(GTPTester):
         self.run_gtp_block('x = "bar";')
         assert self.scopes[0]['x'] == 'bar'
 
+    @pytest.mark.dependency(name='set_true')
     def test_true(self):
         self.run_gtp_block('x = true;')
         assert self.scopes[0]['x'] == True
 
+    @pytest.mark.dependency(name='set_false')
     def test_false(self):
         self.run_gtp_block('x = false;')
         assert self.scopes[0]['x'] == False
@@ -138,3 +141,131 @@ class TestEcho(GTPTester):
     def test_indexer(self):
         self.run_gtp_block('x = {1, 2, 3}; echo x[2];')
         assert self.outputs[0].strip() == '3'
+
+
+@pytest.mark.dependency(name='TestAnd', depends=['TestSet'])
+class TestAnd(GTPTester):
+
+    def test_false_false(self):
+        self.run_gtp_block('x = false and false;')
+        assert self.scopes[0]['x'] == False
+
+    def test_false_true(self):
+        self.run_gtp_block('x = false and true;')
+        assert self.scopes[0]['x'] == False
+
+    def test_true_false(self):
+        self.run_gtp_block('x = true and false;')
+        assert self.scopes[0]['x'] == False
+
+    def test_true_true(self):
+        self.run_gtp_block('x = true and true;')
+        assert self.scopes[0]['x'] == True
+
+    def test_var_false_false(self):
+        self.run_gtp_block('y = false; x = y and y;')
+        assert self.scopes[0]['x'] == False
+
+    def test_var_false_true(self):
+        self.run_gtp_block('y = false; z = true; x = y and z;')
+        assert self.scopes[0]['x'] == False
+
+    def test_var_true_false(self):
+        self.run_gtp_block('y = false; z = true; x = z and y;')
+        assert self.scopes[0]['x'] == False
+
+    def test_var_true_true(self):
+        self.run_gtp_block('y = true; x = y and y;')
+        assert self.scopes[0]['x'] == True
+
+    def test_true_zero(self):
+        self.run_gtp_block('x = true and 0;')
+        assert self.scopes[0]['x'] == 0
+
+    def test_true_nonzero(self):
+        self.run_gtp_block('x = true and 5;')
+        assert self.scopes[0]['x'] == 5
+
+    def test_true_str(self):
+        self.run_gtp_block('x = true and "false";')
+        assert self.scopes[0]['x'] == 'false'
+
+    def test_true_null(self):
+        self.run_gtp_block('x = true and null;')
+        assert self.scopes[0]['x'] == None
+
+
+@pytest.mark.dependency(name='TestOr', depends=['TestSet'])
+class TestOr(GTPTester):
+
+    def test_false_false(self):
+        self.run_gtp_block('x = false or false;')
+        assert self.scopes[0]['x'] == False
+
+    def test_false_true(self):
+        self.run_gtp_block('x = false or true;')
+        assert self.scopes[0]['x'] == True
+
+    def test_true_false(self):
+        self.run_gtp_block('x = true or false;')
+        assert self.scopes[0]['x'] == True
+
+    def test_true_true(self):
+        self.run_gtp_block('x = true or true;')
+        assert self.scopes[0]['x'] == True
+
+    def test_var_false_false(self):
+        self.run_gtp_block('y = false; x = y or y;')
+        assert self.scopes[0]['x'] == False
+
+    def test_var_false_true(self):
+        self.run_gtp_block('y = false; z = true; x = y or z;')
+        assert self.scopes[0]['x'] == True
+
+    def test_var_true_false(self):
+        self.run_gtp_block('y = false; z = true; x = z or y;')
+        assert self.scopes[0]['x'] == True
+
+    def test_var_true_true(self):
+        self.run_gtp_block('y = true; x = y or y;')
+        assert self.scopes[0]['x'] == True
+
+    def test_true_zero(self):
+        self.run_gtp_block('x = true or 0;')
+        assert self.scopes[0]['x'] == True
+
+    def test_true_nonzero(self):
+        self.run_gtp_block('x = true or 5;')
+        assert self.scopes[0]['x'] == True
+
+    def test_true_str(self):
+        self.run_gtp_block('x = true or "false";')
+        assert self.scopes[0]['x'] == True
+
+    def test_true_null(self):
+        self.run_gtp_block('x = true or null;')
+        assert self.scopes[0]['x'] == True
+
+
+@pytest.mark.dependency(depends=['TestAnd', 'TestOr'])
+class TestFakeTernary(GTPTester):
+
+    def test_false(self):
+        self.run_gtp_block('x = false and 5 or "foo";')
+        assert self.scopes[0]['x'] == "foo"
+
+    def test_true(self):
+        self.run_gtp_block('x = true and 5 or "foo";')
+        assert self.scopes[0]['x'] == 5
+
+
+@pytest.mark.dependency(depends=['TestSet'])
+class TestAdd(GTPTester):
+
+    def test_ints(self):
+        self.run_gtp_block('x = 5 + 7;')
+        assert self.scopes[0]['x'] == 12
+
+    def test_strs(self):
+        self.run_gtp_block('x = "foo" + "bar";')
+        assert self.scopes[0]['x'] == 'foobar'

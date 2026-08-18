@@ -36,8 +36,8 @@ operation: echo
 ?assignable: variable
     | indexer
 
-?conjunction: conjunction "and" comparison -> and
-    | conjunction "or" comparison -> or
+?conjunction: conjunction "and" comparison -> and_
+    | conjunction "or" comparison -> or_
     | comparison
 
 ?comparison: sum

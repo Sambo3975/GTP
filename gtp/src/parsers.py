@@ -81,6 +81,15 @@ class GTPTransformer(Transformer):
         lhs.set(value)
         return value
 
+    def and_(self, lhs: Any, rhs: Any):
+        return self._eval(lhs) and self._eval(rhs)
+
+    def or_(self, lhs: Any, rhs: Any):
+        return self._eval(lhs) or self._eval(rhs)
+
+    def add(self, lhs: Any, rhs: Any):
+        return self._eval(lhs) + self._eval(rhs)
+
     @v_args(inline=True)
     def prefix_operation(self, op: Token, var: Variable) -> int:
         value = var.get()
