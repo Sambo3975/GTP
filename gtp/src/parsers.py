@@ -58,6 +58,7 @@ class GTPVisitor(Interpreter):
         return value
 
 
+@v_args(inline=True)
 class GTPTransformer(Transformer):
 
     def __init__(self, scopes: list[dict], readonlies: set, output: list[str]):
@@ -67,68 +68,92 @@ class GTPTransformer(Transformer):
         self.readonlies = readonlies
         self.output = output
 
-    @v_args(inline=True)
     def operation(self, result: Any) -> Any:
         return result
 
-    @v_args(inline=True)
-    def unary_operation(self, lhs: Any, rhs: Any) -> None:
-        match lhs:
-            case 'echo':
-                self.output.append(self._eval(rhs))
-                return None
-            case _:
-                raise OperationError(f"Unknown unary operator '{lhs}'")
+    def print(self, value: Any) -> bool:
+        value = self._eval(value)
+        self.output.append(self.tostring(value, type(value) == list) + '\n')
+        return True
+
+    def set_value(self, lhs: Variable | Indexer, rhs: Any):
+        value = self._eval(rhs)
+        lhs.set(value)
+        return value
 
     @v_args(inline=True)
-    def binary_operation(self, lhs: Any, op: Token, rhs: Any):
+    def prefix_operation(self, op: Token, var: Variable) -> int:
+        value = var.get()
         match op:
-            case '=':
-                if isinstance(lhs, Variable):
-                    value = self._eval(rhs)
-                    lhs.set(value)
-                    return value
-                raise OperationError(f"Cannot assign value to symbol '{lhs}': it is not a variable")
-            case '==':
-                return self._eval(lhs) == self._eval(rhs)
-            case _:
-                raise OperationError(f"Unknown binary operator '{op}'")
+            case '--':
+                if type(value) == int:
+                    value -= 1
+                else:
+                    raise ValueError(f"Attempt to decrement '{var.name}', a {type(value)} value")
+            case '++':
+                if type(value) == int:
+                    value += 1
+                else:
+                    raise ValueError(f"Attempt to increment '{var.name}', a {type(value)} value")
+        var.set(value)
+        return value
 
     @v_args(inline=True)
+    def postfix_operation(self, var: Variable, op: Token) -> int:
+        value = var.get()
+        match op:
+            case '--':
+                if type(value) == int:
+                    var.set(value - 1)
+                else:
+                    raise ValueError(f"Attempt to decrement '{var.name}', a {type(value)} value")
+            case '++':
+                if type(value) == int:
+                    var.set(value + 1)
+                else:
+                    raise ValueError(f"Attempt to increment '{var.name}', a {type(value)} value")
+        return value
+
+    def assignment_operation(self, var: Variable, op: Token, value: Any) -> Any:
+        value = self._eval(value)
+        old_value = var.get()
+        match op:
+            case '+=':
+                value = old_value + value
+            case '-=':
+                value = old_value - value
+            case '*=':
+                value = old_value * value
+            case '/=':
+                value = old_value // value
+            case '^=':
+                value = old_value ** value
+        var.set(value)
+        return value
+
     def variable(self, name: Token):
         return Variable(str(name), self.scopes, self.readonlies)
 
-    @v_args(inline=True)
     def integer(self, s: str):
         return int(s)
 
-    @v_args(inline=True)
     def string(self, s: str):
         return s[1:-1]
 
-    @v_args(inline=True)
     def boolean(self, s: Token):
         return True if s.type == "TRUE" else False
 
-    def null(self, _):
+    def null(self):
         return None
 
-    def f_string(self, l: list):
+    def f_string(self, *l: list):
         return "".join([re.sub(r'\\(.)', r'\1', str(self._eval(x))) for x in l])
 
-    @v_args
-    def array(self, l: list):
+    def array(self, *l: list):
         return [self._eval(x) for x in l]
 
-    @v_args(inline=True)
-    def indexer(self, variable: Any, index: Any):
-        if isinstance(variable, Variable):
-            if type(l := self._eval(variable)) == list:
-                if type(i := self._eval(index)) == int:
-                    return l[i]
-                raise TypeError(f"Attempt to index array with '{i}', a(n) {type(i)} value")
-            raise TypeError(f"Attempt to index symbol '{variable.name}', a(n) {type(l)} value")
-        raise OperationError(f"Cannot index symbol '{variable}': it is not a variable")
+    def indexer(self, variable: Variable, index: Any):
+        return Indexer(variable, index)
 
     @v_args
     def value_range(self, args: list):
@@ -140,11 +165,51 @@ class GTPTransformer(Transformer):
     def _eval(value: Any):
         if isinstance(value, Variable):
             return value.get()
+        if isinstance(value, Indexer):
+            return value.get()
         return value
+
+    @staticmethod
+    def tostring(value: Any, encase_strings: bool = False):
+        if type(value) is bool and value == True:
+            return 'true'
+        elif type(value) is bool and value == False:
+            return 'false'
+        elif value == None:
+            return 'null'
+        elif type(value) == list:
+            return '{' + ', '.join([GTPTransformer.tostring(x, encase_strings) for x in value]) + '}'
+        elif type(value) is str and encase_strings:
+            return f'"{value}"'
+        else:
+            return str(value)
 
 
 class OperationError(Exception):
     pass
+
+
+class Indexer:
+
+    def __init__(self, array: Variable, index: Any):
+        self.array = array
+        self.index = index
+
+    def get(self):
+        array, index = self._get_array_and_index()
+        return array[index]
+
+    def set(self, value: Any):
+        array, index = self._get_array_and_index()
+        array[index] = value
+        return value
+
+    def _get_array_and_index(self):
+        array = self.array.get()
+        index = self.index
+        if isinstance(index, Variable):
+            index = index.get()
+        return array, index
 
 
 class Variable:

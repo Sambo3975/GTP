@@ -1,59 +1,140 @@
 from gtp.src.main import GTPBlock
+import pytest
+from lark.exceptions import VisitError
+
+from gtp.src.parsers import OperationError
+
+class GTPTester:
+
+    def setup_method(self):
+        self.scopes = [dict()]
+        self.readonlies = set()
+        self.outputs : list[str] = []
+
+    def run_gtp_block(self, contents: str):
+        return GTPBlock(self.scopes, self.readonlies, self.outputs, 0, 0, contents).run()
 
 
-class TestGTP:
+class TestSet(GTPTester):
 
-    scopes = [dict()]
-    readonlies = set()
-    outputs = []
-
-    def gtp_block(self, contents: str):
-        return GTPBlock(self.scopes, self.readonlies, self.outputs, 0, 0, contents)
-
-    # ASSIGNMENT
-
-    def test_assignment_int_positive(self):
-        self.gtp_block("x = 5;").run()
+    @pytest.mark.dependency(name='set_int_pos')
+    def test_int_pos(self):
+        self.run_gtp_block("x = 5;")
         assert self.scopes[0]['x'] == 5
 
-    def test_assignment_int_negative(self):
-        self.gtp_block("x = -17;").run()
-        assert self.scopes[0]['x'] == -17
+    def test_int_neg(self):
+        self.run_gtp_block("x = -5;")
+        assert self.scopes[0]['x'] == -5
 
-    def test_assignment_str_single(self):
-        self.gtp_block("x = 'foo';").run()
+    def test_str_single(self):
+        self.run_gtp_block("x = 'foo';")
         assert self.scopes[0]['x'] == 'foo'
 
-    def test_assignment_str_double(self):
-        self.gtp_block('x = "bar";').run()
+    def test_str_double(self):
+        self.run_gtp_block('x = "bar";')
         assert self.scopes[0]['x'] == 'bar'
 
-    def test_assignment_true(self):
-        self.gtp_block('x = true;').run()
+    def test_true(self):
+        self.run_gtp_block('x = true;')
         assert self.scopes[0]['x'] == True
 
-    def test_assignment_false(self):
-        self.gtp_block('x = false;').run()
+    def test_false(self):
+        self.run_gtp_block('x = false;')
         assert self.scopes[0]['x'] == False
 
-    def test_assignment_null(self):
-        self.gtp_block('x = null;').run()
-        assert self.scopes[0]['x'] == None
+    def test_null(self):
+        self.run_gtp_block('x = null;')
+        assert self.scopes[0]['x'] is None
 
-    def test_assignment_var(self):
-        self.gtp_block('x = 5; y = x;').run()
+    def test_fstring(self):
+        self.run_gtp_block('x = f"Matchbox {20}\\ {\'is a band\'}";')
+        assert self.scopes[0]['x'] == 'Matchbox 20 is a band'
+
+    @pytest.mark.dependency(name='set_array')
+    def test_array(self):
+        self.run_gtp_block('x = {1, "two", false, true, null};')
+        for a, b in zip(self.scopes[0]['x'], (1, "two", False, True, None)):
+            assert a == b
+
+    def test_nested_array(self):
+        self.run_gtp_block('x = {1, "two", {"red", "blue"}, null};')
+        for a, b in zip(self.scopes[0]['x'], (1, "two", ["red", "blue"], None)):
+            if type(a) == list:
+                for c, d in zip(a, b):
+                    assert c == d
+            else:
+                assert a == b
+
+    @pytest.mark.dependency(depends=['set_array'])
+    def test_indexer(self):
+        self.run_gtp_block('x = {1, 2, 3}; x[2] = 4;')
+        for a, b in zip(self.scopes[0]['x'], [1, 2, 4]):
+            assert a == b
+
+    def test_chained(self):
+        self.run_gtp_block('x = y = 5;')
         assert self.scopes[0]['x'] == 5
-        assert self.scopes[0]['x'] == self.scopes[0]['y']
-
-    def test_assignment_fstr(self):
-        self.gtp_block('x = "foo"; y = f"{5}\\ {x} fighters";').run()
-        assert self.scopes[0]['y'] == "5 foo fighters"
-
-    def test_assignment_fstr_esc(self):
-        self.gtp_block('x = "bar"; y = f"\\{{x}}";').run()
-        assert self.scopes[0]['y'] == "{bar}"
-
-    def test_assignment_chained(self):
-        self.gtp_block('x = y = 5;').run()
         assert self.scopes[0]['y'] == 5
-        assert self.scopes[0]['x'] == self.scopes[0]['y']
+
+    def test_readonly(self):
+        try:
+            self.readonlies.add('x')
+            self.run_gtp_block('x = 7;')
+        except VisitError as e:
+            if isinstance(e.orig_exc, OperationError):
+                assert e.orig_exc.args[0] == "Cannot assign value to symbol 'x': it is readonly"
+                return
+        raise Exception("Expected to raise a VisitError with orig_exc of type ValueError")
+
+
+class TestEcho(GTPTester):
+
+    def test_int_pos(self):
+        self.run_gtp_block("echo 5;")
+        assert self.outputs[0].strip() == '5'
+
+    def test_int_neg(self):
+        self.run_gtp_block("echo -5;")
+        assert self.outputs[0].strip() == '-5'
+
+    def test_str_single(self):
+        self.run_gtp_block("echo 'foo';")
+        assert self.outputs[0].strip() == 'foo'
+
+    def test_str_double(self):
+        self.run_gtp_block('echo "bar";')
+        assert self.outputs[0].strip() == 'bar'
+
+    def test_true(self):
+        self.run_gtp_block('echo true;')
+        assert self.outputs[0].strip() == 'true'
+
+    def test_false(self):
+        self.run_gtp_block('echo false;')
+        assert self.outputs[0].strip() == 'false'
+
+    def test_null(self):
+        self.run_gtp_block('echo null;')
+        assert self.outputs[0].strip() == 'null'
+
+    @pytest.mark.dependency(depends=["set_int_pos"])
+    def test_var(self):
+        self.run_gtp_block('x = 5; echo x;')
+        assert self.outputs[0].strip() == '5'
+
+    def test_fstring(self):
+        self.run_gtp_block('echo f"Matchbox {20}\\ {\'is a band\'}";')
+        assert self.outputs[0].strip() == 'Matchbox 20 is a band'
+
+    def test_array(self):
+        self.run_gtp_block('echo {1, "two", false, true, null};')
+        assert self.outputs[0].strip() == '{1, "two", false, true, null}'
+
+    def test_nested_array(self):
+        self.run_gtp_block('echo {1, "two", {"red", "blue"}, null};')
+        assert self.outputs[0].strip() == '{1, "two", {"red", "blue"}, null}'
+
+    @pytest.mark.dependency(depends=['set_array', 'set_int_pos'])
+    def test_indexer(self):
+        self.run_gtp_block('x = {1, 2, 3}; echo x[2];')
+        assert self.outputs[0].strip() == '3'

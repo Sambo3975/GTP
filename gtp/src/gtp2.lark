@@ -7,27 +7,64 @@
     | iterator_loop
     | scope
 
-conditional: "if" value scope ("elif" value scope)* ("else" scope)?
+conditional: "if" operation scope ("elif" operation scope)* ("else" scope)?
 
 // Iterate over range or array; error for any other type
-iterator_loop: "for" variable "in" value scope
+iterator_loop: "for" variable "in" operation scope
 
 scope: "{" statement* "}"
 
-operation: unary_operation
-    | binary_operation
+operation: echo
 
-unary_operation: PREFIX_OPERATOR value
+// Everything above this point is processed top-down
+// Everything below this point is processed bottom-up
 
-PREFIX_OPERATOR: "echo"
+// Rules containing keywords must be defined before the variable rule, or the keywords will all be misinterpreted as 
+// variable names (rules are matched using a depth-first traversal).
 
-binary_operation: atom INFIX_OPERATOR value
+?echo: "echo" assignment -> print
+    | assignment
 
-INFIX_OPERATOR: "=" 
-    | "=="
+?assignment: conjunction
+    | assignable "="  assignment -> set_value
+    | assignable "+=" assignment -> iadd
+    | assignable "-=" assignment -> isub
+    | assignable "*=" assignment -> imul
+    | assignable "/=" assignment -> idiv
+    | assignable "^=" assignment -> ipow
 
-?value: operation
+?assignable: variable
+    | indexer
+
+?conjunction: conjunction "and" comparison -> and
+    | conjunction "or" comparison -> or
+    | comparison
+
+?comparison: sum
+    | comparison "==" sum -> eq
+    | comparison "!=" sum -> ne
+    | comparison "<=" sum -> le
+    | comparison ">=" sum -> ge
+    | comparison "<" sum -> lt
+    | comparison ">" sum -> gt
+
+?sum: product
+    | sum "+" product -> add
+    | sum "-" product -> sub
+
+?product: power
+    | product "*" power -> mul
+    | product "/" power -> div
+    
+?power: unary
+    | power "^" unary -> pow
+
+?unary: "not" atom -> neg
     | atom
+    | "++" atom -> pre_incr
+    | "--" atom -> pre_decr
+    | atom "++" -> post_incr
+    | atom "--" -> post_decr
 
 ?atom: literal
     | variable
@@ -35,6 +72,7 @@ INFIX_OPERATOR: "="
     | array
     | indexer
     | value_range
+    | "(" echo ")"
 
 variable: CNAME
 
@@ -55,14 +93,14 @@ FALSE: "false"
 
 null: "null"
 
-f_string: "f'" (F_STRING_INNER | "{" value "}")* "'"
-      | "f\"" (F_STRING_INNER_2 | "{" value "}")* "\""
+f_string: "f'" (F_STRING_INNER | "{" operation "}")* "'"
+      | "f\"" (F_STRING_INNER_2 | "{" operation "}")* "\""
 
-array: "{" value? ("," value)* "}"
+array: "{" operation? ("," operation)* "}"
 
-indexer: variable "[" value "]"
+indexer: variable "[" operation "]"
 
-value_range: "range(" value ~ 1..3 ")"
+value_range: "range(" operation ~ 1..3 ")"
 
 F_STRING_INNER: /([^'\{\\]|\\.)+/ | WS
 F_STRING_INNER_2: /([^"\{\\]|\\.)+/ | WS
