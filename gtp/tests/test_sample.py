@@ -322,3 +322,11 @@ class TestMod(GTPTester):
     def test_ints_2(self):
         self.run_gtp_block('x = 28 % 5;')
         assert self.scopes[0]['x'] == 3
+
+
+@pytest.mark.dependency(depends=['TestSet'])
+class TestPow(GTPTester):
+
+    def test_ints_1(self):
+        self.run_gtp_block('x = 5 ^ 3;')
+        assert self.scopes[0]['x'] == 125
