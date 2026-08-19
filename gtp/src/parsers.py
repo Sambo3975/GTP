@@ -118,6 +118,9 @@ class GTPTransformer(Transformer):
     def mod(self, lhs: Any, rhs: Any):
         return self._eval(lhs) % self._eval(rhs)
 
+    def imod(self, lhs: Variable, rhs: Any):
+        return lhs.set(self.mod(lhs, rhs))
+
     def pow(self, lhs: Any, rhs: Any):
         return self._eval(lhs) ** self._eval(rhs)
 

@@ -383,7 +383,7 @@ class TestIDiv(GTPTester):
             assert a == b and b == c
 
 
-@pytest.mark.dependency(depends=['TestSet'])
+@pytest.mark.dependency(name='TestMod', depends=['TestSet'])
 class TestMod(GTPTester):
 
     def test_ints_1(self):
@@ -393,6 +393,20 @@ class TestMod(GTPTester):
     def test_ints_2(self):
         self.run_gtp_block('x = 28 % 5;')
         assert self.scopes[0]['x'] == 3
+
+
+@pytest.mark.dependency(depends=['TestMod'])
+class TestIMod(GTPTester):
+
+    def test_ints_1(self):
+        self.run_gtp_block('x = 25; y = x %= 5;')
+        assert self.scopes[0]['x'] == 0
+        assert self.scopes[0]['y'] == 0
+
+    def test_ints_2(self):
+        self.run_gtp_block('x = 28; y = x %= 5;')
+        assert self.scopes[0]['x'] == 3
+        assert self.scopes[0]['y'] == 3
 
 
 @pytest.mark.dependency(depends=['TestSet'])
