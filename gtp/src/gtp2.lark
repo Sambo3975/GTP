@@ -61,7 +61,7 @@ operation: echo
 ?power: unary
     | power "^" unary -> pow
 
-?unary: "not" atom -> inverse
+?unary: "not" atom -> not_
     | atom
     | "-" atom -> neg
     | "++" atom -> pre_incr

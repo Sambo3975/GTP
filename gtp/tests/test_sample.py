@@ -576,3 +576,15 @@ class TestGt(GTPTester):
     def test_strs_3(self):
         self.run_gtp_block("x = 'foo' > 'bar';")
         assert self.scopes[0]['x'] == True
+
+
+@pytest.mark.dependency(depends=['TestSet'])
+class TestNot(GTPTester):
+
+    def test_false(self):
+        self.run_gtp_block('x = not false;')
+        assert self.scopes[0]['x'] == True
+
+    def test_true(self):
+        self.run_gtp_block('x = not true;')
+        assert self.scopes[0]['x'] == False
