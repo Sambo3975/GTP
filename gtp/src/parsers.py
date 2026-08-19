@@ -90,6 +90,9 @@ class GTPTransformer(Transformer):
     def add(self, lhs: Any, rhs: Any):
         return self._eval(lhs) + self._eval(rhs)
 
+    def iadd(self, lhs: Variable, rhs: Any):
+        return lhs.set(self.add(lhs, rhs))
+
     def sub(self, lhs: Any, rhs: Any):
         return self._eval(lhs) - self._eval(rhs)
 
@@ -144,8 +147,6 @@ class GTPTransformer(Transformer):
         value = self._eval(value)
         old_value = var.get()
         match op:
-            case '+=':
-                value = old_value + value
             case '-=':
                 value = old_value - value
             case '*=':

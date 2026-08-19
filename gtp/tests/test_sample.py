@@ -259,7 +259,7 @@ class TestFakeTernary(GTPTester):
         assert self.scopes[0]['x'] == 5
 
 
-@pytest.mark.dependency(depends=['TestSet'])
+@pytest.mark.dependency(name='TestAdd', depends=['TestSet'])
 class TestAdd(GTPTester):
 
     def test_ints(self):
@@ -269,6 +269,30 @@ class TestAdd(GTPTester):
     def test_strs(self):
         self.run_gtp_block('x = "foo" + "bar";')
         assert self.scopes[0]['x'] == 'foobar'
+
+    def test_array_array(self):
+        self.run_gtp_block('x = {1, 2, 3} + {4, 5, 6};')
+        for a, b in zip(self.scopes[0]['x'], [1, 2, 3, 4, 5, 6]):
+            assert a == b
+
+
+@pytest.mark.dependency(depends=['TestAdd'])
+class TestIAdd(GTPTester):
+
+    def test_ints(self):
+        self.run_gtp_block('x = 5; y = x += 7;')
+        assert self.scopes[0]['x'] == 12
+        assert self.scopes[0]['y'] == 12
+
+    def test_strs(self):
+        self.run_gtp_block('x = "foo"; y = x += "bar";')
+        assert self.scopes[0]['x'] == 'foobar'
+        assert self.scopes[0]['y'] == 'foobar'
+
+    def test_array_array(self):
+        self.run_gtp_block('x = {1, 2, 3}; y = x += {4, 5, 6};')
+        for a, b, c in zip(self.scopes[0]['x'], self.scopes[0]['y'], [1, 2, 3, 4, 5, 6]):
+            assert a == b and b == c
 
 
 @pytest.mark.dependency(depends=['TestSet'])
