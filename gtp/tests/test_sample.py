@@ -347,7 +347,7 @@ class TestIMul(GTPTester):
         assert self.scopes[0]['y'] == 'spspspspsp'
 
 
-@pytest.mark.dependency(depends=['TestSet'])
+@pytest.mark.dependency(name='TestDiv', depends=['TestSet'])
 class TestDiv(GTPTester):
 
     def test_ints_1(self):
@@ -362,6 +362,25 @@ class TestDiv(GTPTester):
         self.run_gtp_block('x = "a,b,c,d,e" / ",";')
         for a, b in zip(self.scopes[0]['x'], ['a', 'b', 'c', 'd', 'e']):
             assert a == b
+
+
+@pytest.mark.dependency(depends=['TestDiv'])
+class TestIDiv(GTPTester):
+
+    def test_ints_1(self):
+        self.run_gtp_block('x = 25; y = x /= 5;')
+        assert self.scopes[0]['x'] == 5
+        assert self.scopes[0]['y'] == 5
+
+    def test_ints_2(self):
+        self.run_gtp_block('x = 24; y = x /= 5;')
+        assert self.scopes[0]['x'] == 4
+        assert self.scopes[0]['y'] == 4
+
+    def test_strs(self):
+        self.run_gtp_block('x = "a,b,c,d,e"; y = x /= ",";')
+        for a, b, c in zip(self.scopes[0]['x'], self.scopes[0]['y'], ['a', 'b', 'c', 'd', 'e']):
+            assert a == b and b == c
 
 
 @pytest.mark.dependency(depends=['TestSet'])

@@ -106,9 +106,14 @@ class GTPTransformer(Transformer):
         return lhs.set(self.mul(lhs, rhs))
 
     def div(self, lhs: Any, rhs: Any):
+        lhs = self._eval(lhs)
+        rhs = self._eval(rhs)
         if type(lhs) is str and type(rhs) is str:
             return lhs.split(rhs)
-        return self._eval(lhs) // self._eval(rhs)
+        return lhs // rhs
+
+    def idiv(self, lhs: Variable, rhs):
+        return lhs.set(self.div(lhs, rhs))
 
     def mod(self, lhs: Any, rhs: Any):
         return self._eval(lhs) % self._eval(rhs)
@@ -147,19 +152,6 @@ class GTPTransformer(Transformer):
                     var.set(value + 1)
                 else:
                     raise ValueError(f"Attempt to increment '{var.name}', a {type(value)} value")
-        return value
-
-    def assignment_operation(self, var: Variable, op: Token, value: Any) -> Any:
-        value = self._eval(value)
-        old_value = var.get()
-        match op:
-            case '*=':
-                value = old_value * value
-            case '/=':
-                value = old_value // value
-            case '^=':
-                value = old_value ** value
-        var.set(value)
         return value
 
     def variable(self, name: Token):
