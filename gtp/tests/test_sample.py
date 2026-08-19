@@ -312,7 +312,7 @@ class TestISub(GTPTester):
         assert self.scopes[0]['y'] == -2
 
 
-@pytest.mark.dependency(depends=['TestSet'])
+@pytest.mark.dependency(name='TestMul', depends=['TestSet'])
 class TestMul(GTPTester):
 
     def test_ints(self):
@@ -326,6 +326,25 @@ class TestMul(GTPTester):
     def test_str_int(self):
         self.run_gtp_block('x = "sp" * 5;')
         assert self.scopes[0]['x'] == 'spspspspsp'
+
+
+@pytest.mark.dependency(depends=['TestMul'])
+class TestIMul(GTPTester):
+
+    def test_ints(self):
+        self.run_gtp_block('x = 5; y = x *= 7;')
+        assert self.scopes[0]['x'] == 35
+        assert self.scopes[0]['y'] == 35
+
+    def test_int_str(self):
+        self.run_gtp_block('x = 5; y = x *= "ps";')
+        assert self.scopes[0]['x'] == 'pspspspsps'
+        assert self.scopes[0]['y'] == 'pspspspsps'
+
+    def test_str_int(self):
+        self.run_gtp_block('x = "sp"; y = x *= 5;')
+        assert self.scopes[0]['x'] == 'spspspspsp'
+        assert self.scopes[0]['y'] == 'spspspspsp'
 
 
 @pytest.mark.dependency(depends=['TestSet'])

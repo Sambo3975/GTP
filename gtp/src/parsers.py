@@ -102,6 +102,9 @@ class GTPTransformer(Transformer):
     def mul(self, lhs: Any, rhs: Any):
         return self._eval(lhs) * self._eval(rhs)
 
+    def imul(self, lhs: Variable, rhs: Any):
+        return lhs.set(self.mul(lhs, rhs))
+
     def div(self, lhs: Any, rhs: Any):
         if type(lhs) is str and type(rhs) is str:
             return lhs.split(rhs)
