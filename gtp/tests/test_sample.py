@@ -409,9 +409,18 @@ class TestIMod(GTPTester):
         assert self.scopes[0]['y'] == 3
 
 
-@pytest.mark.dependency(depends=['TestSet'])
+@pytest.mark.dependency(name='TestPow', depends=['TestSet'])
 class TestPow(GTPTester):
 
     def test_ints_1(self):
         self.run_gtp_block('x = 5 ^ 3;')
         assert self.scopes[0]['x'] == 125
+
+
+@pytest.mark.dependency(depends=['TestPow'])
+class TestIPow(GTPTester):
+
+    def test_ints_1(self):
+        self.run_gtp_block('x = 5; y = x ^= 3;')
+        assert self.scopes[0]['x'] == 125
+        assert self.scopes[0]['y'] == 125
