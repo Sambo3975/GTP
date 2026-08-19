@@ -596,3 +596,12 @@ class TestNeg(GTPTester):
     def test_int(self):
         self.run_gtp_block('y = 5; x = -y;')
         assert self.scopes[0]['x'] == -5
+
+
+@pytest.mark.dependency(depends=['TestSet'])
+class TestPreInc(GTPTester):
+
+    def test_int(self):
+        self.run_gtp_block('x = 5; y = ++x;')
+        assert self.scopes[0]['x'] == 6
+        assert self.scopes[0]['y'] == 6

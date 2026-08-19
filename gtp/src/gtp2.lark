@@ -64,10 +64,10 @@ operation: echo
 ?unary: "not" atom -> not_
     | atom
     | "-" atom -> neg
-    | "++" atom -> pre_incr
-    | "--" atom -> pre_decr
-    | atom "++" -> post_incr
-    | atom "--" -> post_decr
+    | "++" atom -> pre_inc
+    | "--" atom -> pre_dec
+    | atom "++" -> post_inc
+    | atom "--" -> post_dec
 
 ?atom: literal
     | variable
