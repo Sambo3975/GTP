@@ -295,12 +295,21 @@ class TestIAdd(GTPTester):
             assert a == b and b == c
 
 
-@pytest.mark.dependency(depends=['TestSet'])
+@pytest.mark.dependency(name='TestSub', depends=['TestSet'])
 class TestSub(GTPTester):
 
     def test_ints(self):
         self.run_gtp_block('x = 5 - 7;')
         assert self.scopes[0]['x'] == -2
+
+
+@pytest.mark.dependency(depends=['TestSub'])
+class TestISub(GTPTester):
+
+    def test_ints(self):
+        self.run_gtp_block('x = 5; y = x -= 7;')
+        assert self.scopes[0]['x'] == -2
+        assert self.scopes[0]['y'] == -2
 
 
 @pytest.mark.dependency(depends=['TestSet'])
