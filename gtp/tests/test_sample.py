@@ -464,3 +464,31 @@ class TestNe(GTPTester):
     def test_strs_2(self):
         self.run_gtp_block('x = "foo" != "foo";')
         assert self.scopes[0]['x'] == False
+
+
+@pytest.mark.dependency(depends=['TestSet'])
+class TestLe(GTPTester):
+
+    def test_ints_1(self):
+        self.run_gtp_block('x = 3 <= 5;')
+        assert self.scopes[0]['x'] == True
+
+    def test_ints_2(self):
+        self.run_gtp_block('x = 5 <= 5;')
+        assert self.scopes[0]['x'] == True
+
+    def test_ints_3(self):
+        self.run_gtp_block('x = 5 <= 3;')
+        assert self.scopes[0]['x'] == False
+
+    def test_strs_1(self):
+        self.run_gtp_block("x = 'bar' <= 'foo';")
+        assert self.scopes[0]['x'] == True
+
+    def test_strs_2(self):
+        self.run_gtp_block("x = 'foo' <= 'foo';")
+        assert self.scopes[0]['x'] == True
+
+    def test_strs_3(self):
+        self.run_gtp_block("x = 'foo' <= 'bar';")
+        assert self.scopes[0]['x'] == False
