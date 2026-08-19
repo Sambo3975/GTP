@@ -588,3 +588,11 @@ class TestNot(GTPTester):
     def test_true(self):
         self.run_gtp_block('x = not true;')
         assert self.scopes[0]['x'] == False
+
+
+@pytest.mark.dependency(depends=['TestSet'])
+class TestNeg(GTPTester):
+
+    def test_int(self):
+        self.run_gtp_block('y = 5; x = -y;')
+        assert self.scopes[0]['x'] == -5

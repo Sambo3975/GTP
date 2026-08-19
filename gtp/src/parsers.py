@@ -148,6 +148,9 @@ class GTPTransformer(Transformer):
     def not_(self, v: Any):
         return not self._eval(v)
 
+    def neg(self, v: Any):
+        return -self._eval(v)
+
     @v_args(inline=True)
     def prefix_operation(self, op: Token, var: Variable) -> int:
         value = var.get()
