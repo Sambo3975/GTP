@@ -70,11 +70,11 @@ operation: echo
     | atom "--" -> post_dec
 
 ?atom: literal
+    | value_range
     | variable
     | f_string
     | array
     | indexer
-    | value_range
     | "(" echo ")"
 
 variable: CNAME
@@ -103,7 +103,7 @@ array: "{" operation? ("," operation)* "}"
 
 indexer: variable "[" operation "]"
 
-value_range: "range(" operation ~ 1..3 ")"
+value_range: "range(" operation ("," operation) ~ 0..2 ")"
 
 F_STRING_INNER: /([^'\{\\]|\\.)+/ | WS
 F_STRING_INNER_2: /([^"\{\\]|\\.)+/ | WS

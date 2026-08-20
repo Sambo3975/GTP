@@ -224,8 +224,7 @@ class GTPTransformer(Transformer):
     def indexer(self, variable: Variable, index: Any):
         return Indexer(variable, index)
 
-    @v_args
-    def value_range(self, args: list):
+    def value_range(self, *args: list):
         args = [self._eval(x) for x in args]
         return range(*args)
 

@@ -74,6 +74,21 @@ class TestSet(GTPTester):
         for a, b in zip(self.scopes[0]['x'], [1, 2, 4]):
             assert a == b
 
+    def test_range_1(self):
+        self.run_gtp_block('x = range(10);')
+        for a, b in zip(self.scopes[0]['x'], range(10)):
+            assert a == b
+
+    def test_range_2(self):
+        self.run_gtp_block('x = range(5, 10);')
+        for a, b in zip(self.scopes[0]['x'], range(5, 10)):
+            assert a == b
+
+    def test_range_3(self):
+        self.run_gtp_block('x = range(5, 10, 2);')
+        for a, b in zip(self.scopes[0]['x'], range(5, 10, 2)):
+            assert a == b
+
     def test_chained(self):
         self.run_gtp_block('x = y = 5;')
         assert self.scopes[0]['x'] == 5
