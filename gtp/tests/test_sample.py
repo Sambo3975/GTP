@@ -605,3 +605,12 @@ class TestPreInc(GTPTester):
         self.run_gtp_block('x = 5; y = ++x;')
         assert self.scopes[0]['x'] == 6
         assert self.scopes[0]['y'] == 6
+
+
+@pytest.mark.dependency(depends=['TestSet'])
+class TestPreDec(GTPTester):
+
+    def test_int(self):
+        self.run_gtp_block('x = 5; y = --x;')
+        assert self.scopes[0]['x'] == 4
+        assert self.scopes[0]['y'] == 4

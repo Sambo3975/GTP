@@ -154,6 +154,9 @@ class GTPTransformer(Transformer):
     def pre_inc(self, v: Variable):
         return v.set(v.get() + 1)
 
+    def pre_dec(self, v: Variable):
+        return v.set(v.get() - 1)
+
     @v_args(inline=True)
     def prefix_operation(self, op: Token, var: Variable) -> int:
         value = var.get()
