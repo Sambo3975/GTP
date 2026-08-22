@@ -681,8 +681,6 @@ class TestOrderOfOperations(GTPTester):
 
     def test_order_6(self):
         self.run_gtp_block('x = (7 + 6) - (5 * 4 / 3) ^ 2;')
-        # 13 - (20 / 3) ^ 2
-        # 13 - 6 ^ 2
         assert self.scopes[0]['x'] == -23
 
     def test_order_7(self):

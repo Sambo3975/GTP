@@ -22,7 +22,7 @@ class GTPBlock:
         self.start_line = start_line
         self.start_col = start_col
         self.parse_tree = parser.parse(contents)
-        print(self.parse_tree.pretty())
+        # print(self.parse_tree.pretty())
 
     def run(self) -> list[str]:
         interpreter = GTPVisitor(self.scopes, self.readonlies, self.outputs)
