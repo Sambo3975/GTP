@@ -105,6 +105,7 @@ class TestSet(GTPTester):
         raise Exception("Expected to raise a VisitError with orig_exc of type ValueError")
 
 
+@pytest.mark.dependency(name='TestEcho')
 class TestEcho(GTPTester):
 
     def test_int_pos(self):
@@ -262,7 +263,7 @@ class TestOr(GTPTester):
         assert self.scopes[0]['x'] == True
 
 
-@pytest.mark.dependency(depends=['TestAnd', 'TestOr'])
+@pytest.mark.dependency(name='TestFakeTernary', depends=['TestAnd', 'TestOr'])
 class TestFakeTernary(GTPTester):
 
     def test_false(self):
@@ -291,7 +292,7 @@ class TestAdd(GTPTester):
             assert a == b
 
 
-@pytest.mark.dependency(depends=['TestAdd'])
+@pytest.mark.dependency(name='TestIAdd', depends=['TestAdd'])
 class TestIAdd(GTPTester):
 
     def test_ints(self):
@@ -318,7 +319,7 @@ class TestSub(GTPTester):
         assert self.scopes[0]['x'] == -2
 
 
-@pytest.mark.dependency(depends=['TestSub'])
+@pytest.mark.dependency(name='TestISub', depends=['TestSub'])
 class TestISub(GTPTester):
 
     def test_ints(self):
@@ -343,7 +344,7 @@ class TestMul(GTPTester):
         assert self.scopes[0]['x'] == 'spspspspsp'
 
 
-@pytest.mark.dependency(depends=['TestMul'])
+@pytest.mark.dependency(name='TestIMul', depends=['TestMul'])
 class TestIMul(GTPTester):
 
     def test_ints(self):
@@ -379,7 +380,7 @@ class TestDiv(GTPTester):
             assert a == b
 
 
-@pytest.mark.dependency(depends=['TestDiv'])
+@pytest.mark.dependency(name='TestIDiv', depends=['TestDiv'])
 class TestIDiv(GTPTester):
 
     def test_ints_1(self):
@@ -410,7 +411,7 @@ class TestMod(GTPTester):
         assert self.scopes[0]['x'] == 3
 
 
-@pytest.mark.dependency(depends=['TestMod'])
+@pytest.mark.dependency(name='TestIMod', depends=['TestMod'])
 class TestIMod(GTPTester):
 
     def test_ints_1(self):
@@ -432,7 +433,7 @@ class TestPow(GTPTester):
         assert self.scopes[0]['x'] == 125
 
 
-@pytest.mark.dependency(depends=['TestPow'])
+@pytest.mark.dependency(name='TestIPow', depends=['TestPow'])
 class TestIPow(GTPTester):
 
     def test_ints_1(self):
@@ -441,7 +442,7 @@ class TestIPow(GTPTester):
         assert self.scopes[0]['y'] == 125
 
 
-@pytest.mark.dependency(depends=['TestSet'])
+@pytest.mark.dependency(name='TestEq', depends=['TestSet'])
 class TestEq(GTPTester):
 
     def test_ints_1(self):
@@ -461,7 +462,7 @@ class TestEq(GTPTester):
         assert self.scopes[0]['x'] == True
 
 
-@pytest.mark.dependency(depends=['TestSet'])
+@pytest.mark.dependency(name='TestNe', depends=['TestSet'])
 class TestNe(GTPTester):
 
     def test_ints_1(self):
@@ -481,7 +482,7 @@ class TestNe(GTPTester):
         assert self.scopes[0]['x'] == False
 
 
-@pytest.mark.dependency(depends=['TestSet'])
+@pytest.mark.dependency(name='TestLe', depends=['TestSet'])
 class TestLe(GTPTester):
 
     def test_ints_1(self):
@@ -509,7 +510,7 @@ class TestLe(GTPTester):
         assert self.scopes[0]['x'] == False
 
 
-@pytest.mark.dependency(depends=['TestSet'])
+@pytest.mark.dependency(name='TestGe', depends=['TestSet'])
 class TestGe(GTPTester):
 
     def test_ints_1(self):
@@ -537,7 +538,7 @@ class TestGe(GTPTester):
         assert self.scopes[0]['x'] == True
 
 
-@pytest.mark.dependency(depends=['TestSet'])
+@pytest.mark.dependency(name='TestLt', depends=['TestSet'])
 class TestLt(GTPTester):
 
     def test_ints_1(self):
@@ -565,7 +566,7 @@ class TestLt(GTPTester):
         assert self.scopes[0]['x'] == False
 
 
-@pytest.mark.dependency(depends=['TestSet'])
+@pytest.mark.dependency(name='TestGt', depends=['TestSet'])
 class TestGt(GTPTester):
 
     def test_ints_1(self):
@@ -593,7 +594,7 @@ class TestGt(GTPTester):
         assert self.scopes[0]['x'] == True
 
 
-@pytest.mark.dependency(depends=['TestSet'])
+@pytest.mark.dependency(name='TestNot', depends=['TestSet'])
 class TestNot(GTPTester):
 
     def test_false(self):
@@ -605,7 +606,7 @@ class TestNot(GTPTester):
         assert self.scopes[0]['x'] == False
 
 
-@pytest.mark.dependency(depends=['TestSet'])
+@pytest.mark.dependency(name='TestNeg', depends=['TestSet'])
 class TestNeg(GTPTester):
 
     def test_int(self):
@@ -613,7 +614,7 @@ class TestNeg(GTPTester):
         assert self.scopes[0]['x'] == -5
 
 
-@pytest.mark.dependency(depends=['TestSet'])
+@pytest.mark.dependency(name='TestPreInc', depends=['TestSet'])
 class TestPreInc(GTPTester):
 
     def test_int(self):
@@ -622,7 +623,7 @@ class TestPreInc(GTPTester):
         assert self.scopes[0]['y'] == 6
 
 
-@pytest.mark.dependency(depends=['TestSet'])
+@pytest.mark.dependency(name='TestPreDec', depends=['TestSet'])
 class TestPreDec(GTPTester):
 
     def test_int(self):
@@ -631,7 +632,7 @@ class TestPreDec(GTPTester):
         assert self.scopes[0]['y'] == 4
 
 
-@pytest.mark.dependency(depends=['TestSet'])
+@pytest.mark.dependency(name='TestPostInc', depends=['TestSet'])
 class TestPostInc(GTPTester):
 
     def test_int(self):
@@ -640,10 +641,54 @@ class TestPostInc(GTPTester):
         assert self.scopes[0]['y'] == 5
 
 
-@pytest.mark.dependency(depends=['TestSet'])
+@pytest.mark.dependency(name='TestPostDec', depends=['TestSet'])
 class TestPostDec(GTPTester):
 
     def test_int(self):
         self.run_gtp_block('x = 5; y = x--;')
         assert self.scopes[0]['x'] == 4
         assert self.scopes[0]['y'] == 5
+
+
+@pytest.mark.dependency(name='TestOrderOfOperations', depends=['TestSet', 'TestEcho', 'TestAnd', 'TestOr',
+                                                               'TestFakeTernary', 'TestAdd', 'TestIAdd', 'TestSub', 
+                                                               'TestISub', 'TestMul', 'TestIMul', 'TestDiv', 'TestIDiv', 
+                                                               'TestMod', 'TestIMod', 'TestPow', 'TestIPow', 'TestEq', 
+                                                               'TestNe', 'TestLe','TestGe', 'TestLt', 'TestGt', 'TestNot',
+                                                               'TestNeg', 'TestPreInc', 'TestPreDec', 'TestPostInc', 
+                                                               'TestPostDec'])
+class TestOrderOfOperations(GTPTester):
+
+    def test_order_1(self):
+        self.run_gtp_block('x = 3 + 5 * 7;')
+        assert self.scopes[0]['x'] == 38
+
+    def test_order_2(self):
+        self.run_gtp_block('x = (3 + 5) * 7;')
+        assert self.scopes[0]['x'] == 56
+
+    def test_order_3(self):
+        self.run_gtp_block('x = 5; x += 3 - 5 / 2;')
+        assert self.scopes[0]['x'] == 6
+
+    def test_order_4(self):
+        self.run_gtp_block('x = 5; x -= (3 - 5) / 2;')
+        assert self.scopes[0]['x'] == 6
+
+    def test_order_5(self):
+        self.run_gtp_block('x = 7 + 6 - 5 * 4 / 3 ^ 2;')
+        assert self.scopes[0]['x'] == 11
+
+    def test_order_6(self):
+        self.run_gtp_block('x = (7 + 6) - (5 * 4 / 3) ^ 2;')
+        # 13 - (20 / 3) ^ 2
+        # 13 - 6 ^ 2
+        assert self.scopes[0]['x'] == -23
+
+    def test_order_7(self):
+        self.run_gtp_block('x = 2; x *= (7 + (6 - 5) * 4 / 3) ^ 2;')
+        assert self.scopes[0]['x'] == 128
+
+    def test_order_8(self):
+        self.run_gtp_block('x = 5; y = x++ < x and 12 or 3 + 5;')
+        assert self.scopes[0]['y'] == 12

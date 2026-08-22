@@ -14,7 +14,7 @@ iterator_loop: "for" variable "in" operation scope
 
 scope: "{" statement* "}"
 
-operation: echo
+operation: expression
 
 // Everything above this point is processed top-down
 // Everything below this point is processed bottom-up
@@ -22,7 +22,7 @@ operation: echo
 // Rules containing keywords must be defined before the variable rule, or the keywords will all be misinterpreted as 
 // variable names (rules are matched using a depth-first traversal).
 
-?echo: "echo" assignment -> print
+?expression: "echo" assignment -> print
     | assignment
 
 ?assignment: conjunction
@@ -75,7 +75,7 @@ operation: echo
     | f_string
     | array
     | indexer
-    | "(" echo ")"
+    | "(" expression ")"
 
 variable: CNAME
 
